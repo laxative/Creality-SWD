@@ -1,5 +1,5 @@
 RET6 512KB flash
-
+dump_image /home/pi/nozzle_backup.bin 0x08000000 0x20000 i would dump everything you can before attempting this, i bricked 2 boards during this. 
 using gpio pins on pi to set high and low on boot0
 
 pi@raspberrypi:~ $ python g32-pin.py bootloader
