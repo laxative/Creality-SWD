@@ -1,0 +1,73 @@
+RET6 512KB flash
+
+using gpio pins on pi to set high and low on boot0
+
+pi@raspberrypi:~ $ python g32-pin.py bootloader
+Booting into factory bootloader...
+Done - GD32 is now in factory bootloader mode
+
+pi@raspberrypi:~ $ python g32-pin.py reboot
+reboot into bootloader
+
+reset halt
+mww 0x40022004 0x45670123
+mww 0x40022004 0xCDEF89AB
+mww 0x40022008 0x45670123
+mww 0x40022008 0xCDEF89AB
+mww 0x40022010 0x00000044
+mww 0x40022010 0x00000044
+mww 0x40022010 0x000000C4
+mdw 0x40022014
+mdw 0x08000000
+
+good:
+0x08000000: ffffffff
+> mdw 0x08020000
+0x08020000: ffffffff
+> mdw 0x08040000
+0x08040000: ffffffff
+> 0x08060000
+invalid command name "0x08060000"
+> mdw 0x08060000
+0x08060000: ffffffff
+>
+> flash write_image /home/pi/katapult/out/katapult.bin 0x08000000 // writing our bootloader to the device. keep in mind size so you can set the proper offset for the mcu firmware (klipper) 
+wrote 3048 bytes from file /home/pi/katapult/out/katapult.bin in 0.222828s (13.358 KiB/s)
+> verify_image /home/pi/katapult/out/katapult.bin 0x08000000
+verified 3048 bytes in 0.109777s (27.115 KiB/s)
+
+> targets
+    TargetName         Type       Endian TapName            State
+--  ------------------ ---------- ------ ------------------ ------------
+ 0* gd32f3x.cpu        cortex_m   little gd32f3x.cpu        running
+Flash bootloader over swd , then use bootloader uart flash to flash klipper
+python3 ~/katapult/scripts/flash_can.py -d /dev/ttySC0 -b 230400 -f ~/klipper/out/klipper.bin
+
+PA2 // PA3 UART rx/tx? 
+
+
+
+128 KB FLASH
+
+reset
+halt
+
+mww 0x40022004 0x45670123
+mww 0x40022004 0xCDEF89AB
+mww 0x40022008 0x45670123
+mww 0x40022008 0xCDEF89AB
+mww 0x40022010 0x00000044
+mww 0x40022010 0x000000C4
+flash erase_sector 0 0 0
+
+mdw 0x08000000
+mdw 0x08010000
+mdw 0x0801fffc
+
+flash write_image /home/pi/katapult/out/katapult.bin 0x08000000
+verify_image /home/pi/katapult/out/katapult.bin 0x08000000
+
+resume
+
+python3 ~/katapult/scripts/flash_can.py -d /dev/ttySC1 -b 230400 -f ~/klipper/out/klipper.bin
+PA2 // PA3 UART
